@@ -59,7 +59,7 @@ def main_worker(args):
     if args.model.arch == 'resnet18-2b':
         net.blocks[0].auxnet[0].load_state_dict(net.blocks[1].block.state_dict())
         # net.blocks[0].auxnet[1].load_state_dict(net.blocks[1].auxnet[0].state_dict())
-    print(net, '\n')
+    # print(net, '\n')
 
     if args.training.guess == 'random':
         for k, block in enumerate(net.blocks):
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     from utils.tools import get_git_revision_hash
 
     opt = get_args()
-    print(opt)
+    # print(opt)
     os.environ["CUDA_VISIBLE_DEVICES"] = f"{opt.device.index}"
     if opt.wandb.status:
         os.environ["WANDB_MODE"] = "offline"

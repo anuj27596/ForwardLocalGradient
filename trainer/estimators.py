@@ -113,7 +113,7 @@ def _weight_perturb_estimator(module):
         module.weight.grad = weighted_grad.sum(dim=0)
     if module.bias is not None and module.bias.requires_grad:
         weighted_grad = compute_projection(module.target['bias'], module.guess['bias'])
-        module.weight.grad = weighted_grad.sum(dim=0)
+        module.bias.grad = weighted_grad.sum(dim=0)  # anuj: module.weight -> module.bias
     return None
 
 
