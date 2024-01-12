@@ -115,6 +115,9 @@ def get_train_epoch_function(algorithm):
         return train_epoch
     elif algorithm == 'generic':
         return _train_epoch
+    elif algorithm == 'accumulate':
+        from trainer.jvp_accumulation import train_epoch
+        return train_epoch
     else:
         return None
 

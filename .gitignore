@@ -1,5 +1,8 @@
 
-*.pyc
+run.sh
 
-data/
-__pycache__/
+*.pyc
+*.log
+
+data
+__pycache__

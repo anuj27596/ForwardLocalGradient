@@ -13,7 +13,7 @@ architectures = ['resnet18-8b', 'resnet18-16b', 'resnet18-2b', 'small-net']
 aux_type = ['mlp', 'cnn', 'linear', 'predsim']
 weight_init = ['xavier-uniform', 'xavier-normal', 'kaiming-uniform', 'kaiming-normal', 'normal', 'uniform', 'ones',
                'zeros', None]
-algorithms = ['std', 'localonly', 'avg-weight-fast', 'generic']
+algorithms = ['std', 'localonly', 'avg-weight-fast', 'generic', 'accumulate']
 schedulers = ['steplr', 'plateau', 'onecycle', 'linear']
 
 
@@ -85,7 +85,7 @@ class AuxLossArgs(Serializable):
 class AlgorithmArgs(Serializable):
     algorithm: str = sp.field(default='generic', choices=algorithms)
     target: str = sp.field(default='global', choices=['global', 'local', 'sum', 'above'])
-    guess: str = sp.field(default='local', choices=['global', 'local', 'sum', 'above', 'random', 'ntk', 'fixed-ntk'])
+    guess: str = sp.field(default='local', choices=['global', 'local', 'sum', 'above', 'random', 'ntk', 'fixed-ntk', 'local-and-last'])
     space: str = sp.field(default='weight', choices=['weight', 'avg-weight', 'f-weight', 'span-weight', 'sign-weight',
                                                      'random-sign-weight',
                                                      'activation', 'activation-2', 'f-activation', 'span-activation',

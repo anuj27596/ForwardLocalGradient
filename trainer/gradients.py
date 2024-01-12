@@ -2,6 +2,7 @@ import torch
 from trainer.utils import accuracy, set_bn_train, set_bn_eval
 
 
+# ========== within param object ==========
 def save_module_gradient(module):
     if module.weight.requires_grad:
         module.weight.saved_grad = module.weight.grad.detach().clone()
@@ -43,6 +44,49 @@ def set_auxiliary_gradients(net):
     for k, block in enumerate(net.blocks):
         if k < len(net.blocks) - 1:
             set_gradient(block.auxnet)
+
+
+# ========== outside param object ==========
+def stash_module_gradient(module):
+    setattr(module, 'stashed_grad', {})
+    for name, param in module.named_parameters(recurse = False):
+        module.stashed_grad[name] = param.grad.detach().clone()
+
+
+def restore_module_gradient(module):
+    for name, param in module.named_parameters(recurse = False):
+        param.grad = module.stashed_grad[name]
+    delattr(module, 'stashed_grad')
+
+
+def stash_gradient(net):
+    for module in net.modules():
+        if isinstance(module, torch.nn.modules.Linear) or \
+                isinstance(module, torch.nn.modules.conv._ConvNd) or \
+                isinstance(module, torch.nn.modules.batchnorm._BatchNorm):
+            stash_module_gradient(module)
+
+
+def restore_gradient(net):
+    for module in net.modules():
+        if isinstance(module, torch.nn.modules.Linear) or \
+                isinstance(module, torch.nn.modules.conv._ConvNd) or \
+                isinstance(module, torch.nn.modules.batchnorm._BatchNorm):
+            restore_module_gradient(module)
+
+
+def stash_auxiliary_gradients(net):
+    for k, block in enumerate(net.blocks):
+        if k < len(net.blocks) - 1:
+            stash_gradient(block.auxnet)
+    return None
+
+
+def restore_auxiliary_gradients(net):
+    for k, block in enumerate(net.blocks):
+        if k < len(net.blocks) - 1:
+            restore_gradient(block.auxnet)
+
 
 
 def compute_random_directions(net, data, target, criterion, dest='guess', space='weight', noise_type='gaussian'):
@@ -150,6 +194,22 @@ def compute_local_above_gradients(net, data, target, criterion, dest=None, space
     return loss, accs
 
 
+def compute_local_and_last_gradients(net, data, target, criterion, dest=None, space='weight'):
+    x = data
+    for k, block in enumerate(net.blocks):
+        x = block(x.detach())
+        pred = block.auxnet(x)
+        loss = criterion(pred, target)
+        accs = accuracy(pred, target)
+        _ = loss.item()
+        loss.backward()
+
+        block.auxnet.loss.update(loss.item())
+        block.auxnet.accs.update(accs.item())
+
+    return loss, accs
+
+
 def get_gradient_computation_function(label='global'):
     if label == 'global':
         return compute_global_gradients
@@ -159,3 +219,5 @@ def get_gradient_computation_function(label='global'):
         return compute_local_above_gradients
     elif label == 'random':
         return compute_random_directions
+    elif label == 'local-and-last':
+        return compute_local_and_last_gradients
