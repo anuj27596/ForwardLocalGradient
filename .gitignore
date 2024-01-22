@@ -3,6 +3,7 @@ run.sh
 
 *.pyc
 *.log
+*.npy
 
 data
 __pycache__

@@ -9,7 +9,7 @@ def dualize(module):
     for name, param in list(module.named_parameters(recurse = False)):
         module.param_stash[name] = param
         delattr(module, name)
-        setattr(module, name, fwAD.make_dual(param.detach().clone(), param.grad.clone()))
+        setattr(module, name, fwAD.make_dual(param.detach(), param.grad))
 
 
 def undualize(module):
